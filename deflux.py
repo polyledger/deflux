@@ -1,7 +1,7 @@
 # Application written with Flask
 # http://flask.pocoo.org/docs/0.12/
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from redis import Redis
 from celery import Celery
 from cvar import Allocator
@@ -21,10 +21,9 @@ celery.conf.update(app.config)
 # Celery task for running allocation
 # http://docs.celeryproject.org/en/latest/
 @celery.task()
-def allocate():
-    coins = ['BTC', 'ETH', 'LTC']
-    percentile = 5
-    allocation = Allocator.allocate(coins=coins, percentile=percentile)
+def allocate(coins):
+    allocator = Allocator(coins=coins)
+    allocation = allocator.allocate()
     return allocation
 
 
@@ -37,8 +36,11 @@ def get_allocation(task_id):
 
 @app.route('/api/allocations/', methods=['POST'])
 def create_allocation():
+    data = request.get_json()
+    coins = data['coins']
+
     # Initiate a new allocation job
-    result = allocate.delay()
+    result = allocate.delay(coins)
 
     # Return the job ID (this will be through the job queue processor)
     response = {'task_id': result.id}
