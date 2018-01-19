@@ -5,6 +5,9 @@ clean-pyc:
 	find . -maxdepth 1  -name '*.pyo' -exec rm -f {} +
 	find . -name '__pycache__' -exec rm -rf {} +
 
+clean-logs:
+	find . -name '*.log' -exec rm -f {} +
+
 lint:
 	flake8 cvar.py deflux.py tests.py
 
