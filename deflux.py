@@ -4,6 +4,7 @@
 from flask import Flask, jsonify
 from redis import Redis
 from celery import Celery
+from cvar import Allocator
 
 # Connect to Redis
 redis = Redis(host='redis', db=0, socket_connect_timeout=2, socket_timeout=2)
@@ -21,7 +22,10 @@ celery.conf.update(app.config)
 # http://docs.celeryproject.org/en/latest/
 @celery.task()
 def allocate():
-    return []
+    coins = ['BTC', 'ETH', 'LTC']
+    percentile = 5
+    allocation = Allocator.allocate(coins=coins, percentile=percentile)
+    return allocation
 
 
 @app.route('/api/allocations/<task_id>/', methods=['GET'])
